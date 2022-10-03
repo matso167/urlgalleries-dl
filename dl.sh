@@ -9,7 +9,7 @@ read -p "Directory name: " dir
 mkdir dl/$dir
 echo "Paste thumbnails (then CTRL+D): "
 
-echo $(</dev/stdin) | grep -oPi '[^\ ]*.jpg' | sed -e 's/^/https:\/\/xarchivesx.urlgalleries.net\//' > links
+echo $(</dev/stdin) | grep -oPi "[^\ ]*.jpg( |$)" | sed -e 's/^/https:\/\/xarchivesx.urlgalleries.net\//' > links
 i=0
 cat links | while read link
 do
