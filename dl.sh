@@ -1,21 +1,20 @@
+dl () {
+  local num=$(printf "%03d" $1)
+  local url=$(wget -q -O - $3 | grep -oPi -m 1 'src="\Khttps://[^"]*.jpg')
+  wget -q -O dl/$2/$num.jpg $url
+  echo "Downloaded $PWD/dl/$2/$num.jpg"
+}
+
 read -p "Directory name: " dir
 mkdir dl/$dir
 echo "Paste thumbnails (then CTRL+D): "
-input=$(</dev/stdin)
 
-echo ""
-echo "Downloading html documents"
-
-wget -q --level 1 -nd -r -P dl/$dir -A jpg $(echo $input | grep -oP '[^\ ]*.jpg' | sed -e 's/^/https:\/\/xarchivesx.urlgalleries.net\//')
-jpgs=$(cat $(find "$PWD/dl/$dir" -type f -printf "%T@ %Tc %p\n" | sort -n | grep -oP ' \K/.*') | grep -oP 'src="\Khttps://[^"]*.jpg')
-rm dl/$dir/*.jpg
-
-echo "Downloading images"
-
+echo $(</dev/stdin) | grep -oPi '[^\ ]*.jpg' | sed -e 's/^/https:\/\/xarchivesx.urlgalleries.net\//' > links
 i=0
-for jpg in $jpgs
+cat links | while read link
 do
   i=$(($i+1))
-  wget -q -O $PWD/dl/$dir/$i.jpg $jpg &
-  echo "Downloaded $PWD/dl/$dir/$i.jpg"
+  dl $i $dir $link &
 done
+
+#find $PWD/dl/$dir -type f -size -100k -delete
