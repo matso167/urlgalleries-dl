@@ -1,13 +1,14 @@
 dl () {
   local num=$(printf "%03d" $1)
   touch dl/$2/$num.jpg.tmp
-  local url=$(wget -q -O - $3 | grep -oPi -m 1 "src=(\"|')\Khttps://[^(\"|')]*.(jpg|jpeg)")
-  wget -q -O dl/$2/$num.jpg $url
+  local url=$(wget -q -O - "$3" | grep -oPi -m 1 "src=(\"|')\Khttps://[^(\"|')]*.(jpg|jpeg)")
+  wget -q -O dl/$2/$num.jpg "$url"
   rm dl/$2/$num.jpg.tmp
 }
 
 read -p "Gallery URL: " url
 dir="$(echo $url | grep -oP ".*?\K[^\/]+$")-$(date +%s)"
+echo "dir: $dir"
 mkdir dl/$dir
 
 input=$(curl "$url&a=10000" -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0')
@@ -17,6 +18,7 @@ i=0
 cat links | while read link
 do
   i=$(($i+1))
+  #echo "$i $dir $link"
   dl $i $dir $link &
 done
 
