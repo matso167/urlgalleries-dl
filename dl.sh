@@ -1,20 +1,23 @@
 function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
 
-dl () {
+img () {
   local num=$(printf "%03d" $1)
   touch dl/$2/$num.jpg.tmp
-  local urls=$(wget -q -O - "$3" | grep -Pzo "(.|\n)*bottom-articles" | grep -oPi "src=(\"|')\Khttps://[^(\"|')]*.(jpg|jpeg|webp)")
-  local i=0
+  wget -q -O dl/$2/$num.jpg "$3"
+  rm dl/$2/$num.jpg.tmp
+}
+
+dl () {
+  local i=$1
+  local urls=$(wget -q -O - "$3" | grep -Pzo "(.|\n)*bottom-articles" | grep -oPi " src=(\"|')\Khttps://[^(\"|')]*.(jpg|jpeg|webp)")
   
   for url in $urls
   do 
     i=$(($i+1))
-    local num2=$(printf "%03d" $i)
-    echo "img $url ."
-    wget -q -O dl/$2/$num$num2.jpg "$url"
+    img $i $2 $url &
   done
-
-  rm dl/$2/$num.jpg.tmp
+  
+  echo $i
 }
 
 read -p "Gallery URL: " url
@@ -30,9 +33,7 @@ echo "$input" | grep -F /$name | grep -oPi " href=\"\K/[^ \"]*" | sort -u | sed 
 i=0
 cat links | while read link
 do
-  i=$(($i+1))
-  #echo "$i $dir $link"
-  dl $i $dir $link &
+  i=$(dl $i $dir $link)
 done
 
 rm links
