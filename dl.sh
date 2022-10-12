@@ -20,7 +20,8 @@ dl () {
   echo $i
 }
 
-read -p "Gallery URL: " url
+url=$(xsel)
+#read -p "Gallery URL: " url
 name=$(urldecode $(echo $url | grep -oP ".*?\K[^\/]+$"))
 dir="$name-$(date +%s)"
 echo "dir: $dir"
