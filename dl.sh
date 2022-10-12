@@ -1,18 +1,31 @@
+function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
+
 dl () {
   local num=$(printf "%03d" $1)
   touch dl/$2/$num.jpg.tmp
-  local url=$(wget -q -O - "$3" | grep -oPi -m 1 "src=(\"|')\Khttps://[^(\"|')]*.(jpg|jpeg)")
-  wget -q -O dl/$2/$num.jpg "$url"
+  local urls=$(wget -q -O - "$3" | grep -Pzo "(.|\n)*bottom-articles" | grep -oPi "src=(\"|')\Khttps://[^(\"|')]*.(jpg|jpeg|webp)")
+  local i=0
+  
+  for url in $urls
+  do 
+    i=$(($i+1))
+    local num2=$(printf "%03d" $i)
+    echo "img $url ."
+    wget -q -O dl/$2/$num$num2.jpg "$url"
+  done
+
   rm dl/$2/$num.jpg.tmp
 }
 
 read -p "Gallery URL: " url
-dir="$(echo $url | grep -oP ".*?\K[^\/]+$")-$(date +%s)"
+name=$(urldecode $(echo $url | grep -oP ".*?\K[^\/]+$"))
+dir="$name-$(date +%s)"
 echo "dir: $dir"
 mkdir dl/$dir
 
 input=$(curl "$url&a=10000" -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0')
 echo $input | grep -oPi " href=(\"|')\K[^(\"|\')]*\.(jpg|jpeg)" | tr -d " " | sed -r 's/#/%23/g' | sed -e 's/^/https:\/\/xarchivesx.urlgalleries.net/' > links
+echo "$input" | grep -F /$name | grep -oPi " href=\"\K/[^ \"]*" | sort -u | sed -e 's/^/https:\/\/buondua.com/' > links
 
 i=0
 cat links | while read link
